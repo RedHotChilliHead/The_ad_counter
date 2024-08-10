@@ -131,7 +131,7 @@ API метод отображает количество объявлений п
 
 #### URL
 
-```http
+```plaintext
 http://127.0.0.1:8000/counter/stat/?id=<id>&start_time=<start_time>&end_time=<end_time>
 ```
 
