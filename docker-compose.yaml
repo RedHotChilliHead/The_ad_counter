@@ -1,0 +1,124 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16.2
+    restart: always
+    volumes:
+      - counter_postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: counter_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "54322:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
+
+  selenium:
+    image: selenium/standalone-chrome:latest
+    container_name: selenium
+    ports:
+      - "4444:4444"  # Порт для Selenium WebDriver
+    platform: linux/amd64  # Указание платформы
+
+  counterapp:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: counterapp
+    command: >
+      sh -c '/wait-for-it.sh db:5432 -- python manage.py runserver 0.0.0.0:8080'
+    ports:
+      - "8000:8080"
+    environment:
+      - DATABASE_NAME=counter_db
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=admin
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - SELENIUM_HOST=selenium  # Имя сервиса Selenium, используемое в коде приложения
+      - SELENIUM_PORT=4444  # Порт, на котором Selenium WebDriver слушает
+    depends_on:
+      - db
+      - selenium  # Убедитесь, что контейнер Selenium запущен до приложения
+      - redis
+    networks:
+      - default
+    platform: linux/amd64  # Указание платформы
+
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - default
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: sh -c "sleep 30 && cd The_ad_counter && celery -A The_ad_counter worker --loglevel=INFO -P gevent"
+    depends_on:
+      - db
+      - redis
+      - selenium
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    platform: linux/amd64
+    volumes:
+      - .:/counterapp/
+    networks:
+      - default
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: sh -c "sleep 30 && cd The_ad_counter && celery -A The_ad_counter beat --loglevel=INFO"
+    depends_on:
+      - db
+      - redis
+      - selenium
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    platform: linux/amd64
+    volumes:
+      - .:/counterapp/
+    networks:
+      - default
+
+networks:
+  default:
+    driver: bridge
+
+volumes:
+  counter_postgres_data:
+    external: true
+
+# docker build . -t counterapp
+
+# docker volume create counter_postgres_data
+# docker compose up -d
+
+# docker compose run counterapp python manage.py test - для правильного выполнения тестов в контейнере
+# python manage.py test counterapp.tests  - временное решение для работы с тестовой локальной БД
+
+
+# docker compose up --build
+
+# cd The_ad_counter
+# celery -A The_ad_counter worker --loglevel=DEBUG -P gevent - запуск воркеров с пулом процессов gevent
+
+# cd The_ad_counter
+# python manage.py runserver
+
+# celery -A The_ad_counter beat --loglevel=DEBUG - запуск Celery Beat (планирование и отправка задач в очередь)
