@@ -14,7 +14,7 @@ class CounterSerializer(serializers.ModelSerializer):
 
 class AdSerializer(serializers.ModelSerializer):
     """
-    Сериализатор топ-5 объявлений
+    Сериализатор объявлений
     """
 
     class Meta:

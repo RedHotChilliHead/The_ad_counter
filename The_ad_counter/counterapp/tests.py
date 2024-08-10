@@ -110,10 +110,8 @@ class AddBundleTestCase(APITestCase):
 
         # Получаем путь к текущему файлу (tests.py)
         current_dir = os.path.dirname(__file__)
-        print(current_dir)
         # Формируем путь к файлу Moscow-studio.html относительно текущего файла
         file_path = os.path.join(current_dir, '.', 'templates', 'Moscow-studio.html')
-        print(file_path)
         # Загружаем HTML из файла
         with open(file_path, 'r') as f:
             mock_driver.page_source = f.read()

@@ -45,7 +45,6 @@ def get_url(bundle):
     Метод получения полной ссылки
     Пример: запрос - Moscow, 1 или 2, готовая ссылка https://www.cian.ru/kupit-kvartiru-1-komn-ili-2-komn/
     """
-    print('get_url стартовала')
     if bundle.region == "moscow":
         return f"https://www.cian.ru/{PHRASE_URL[bundle.phrase]}/"
 
@@ -56,7 +55,6 @@ def get_url(bundle):
 
 
 def create_driver():
-    print('create_driver стартовала')
     options = Options()
     options.binary_location = "/usr/bin/google-chrome"
     options.add_argument(
@@ -75,7 +73,6 @@ def create_driver():
 
 
 def get_top_links(bundle, soup):
-    print('get_top_links стартовала')
     Ad.objects.filter(bundle=bundle).delete()
     # Находим все контейнеры с атрибутом data-name="LinkArea"
     link_area_divs = soup.find_all('div', attrs={'data-name': 'LinkArea'})
@@ -97,7 +94,6 @@ def get_top_links(bundle, soup):
 
 
 def parser(bundle, url):
-    print('parser стартовала')
     logger.info(f"start parsing {url}")
     driver = None
 
@@ -112,8 +108,6 @@ def parser(bundle, url):
         page_source = driver.page_source
 
         soup = BeautifulSoup(page_source, 'html.parser')
-        # print('soup:')
-        # print(soup.prettify())  # Печатаем отформатированный HTML-код для удобства
 
         script_tags = soup.find_all('script', {'type': 'application/ld+json'})
         get_top_links(bundle, soup)
@@ -145,8 +139,7 @@ def parser(bundle, url):
 # задача по подсчету количества объявлений, по заданной связке поисковой запрос + регион
 @shared_task()
 def counting_ads(bundle_id):
-    print('задача стартовала')
-    logger.info("задача стартовала")
+    logger.info("Start counting ads")
     if Bundle.objects.filter(id=bundle_id).exists():
         bundle = Bundle.objects.get(pk=bundle_id)
     else:
@@ -161,16 +154,14 @@ def counting_ads(bundle_id):
         logger.info(f'{counter.count} ads on request {url} at {counter.date}')
 
 
+# мониторинг счетчиков каждый час, создание новых, если время вышло
 @shared_task()
 def adding_tasks_to_delay():
     logger.info(f'start adding tasks to delay every hour')
     bundles = Bundle.objects.all()
-    # delta = timedelta(seconds=45)
     delta = timedelta(hours=1)
     for bundle in bundles:
-        print('bundle.id:', bundle.id)
         counter = Counter.objects.filter(bundle=bundle.id).last()
-        print(f'last counter.id {counter.id} for bundle {bundle.id}')
         if counter is None:
             counting_ads.delay(bundle.pk)
         if counter.date + delta < timezone.now():

@@ -44,16 +44,13 @@ class AddApiView(APIView):
         url = get_url(bundle)
         response = requests.get(url)
         if response.status_code != 200:
-            print('start response.status_code != 200')
             bundle.delete()
             return Response({'error': 'The region is specified incorrectly'}, status=status.HTTP_400_BAD_REQUEST)
 
         if bundle:
-            print('counting_ads.delay()')
             counting_ads.delay(bundle.pk)  # Вызов функции для постановки задач в очередь
             return Response({"id": bundle.pk}, status=status.HTTP_201_CREATED)
         else:
-            print('error occurred when creating a bundle')
             return Response({'error': 'An error occurred when creating a bundle'}, status=status.HTTP_400_BAD_REQUEST)
 
 

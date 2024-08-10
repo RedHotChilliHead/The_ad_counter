@@ -130,11 +130,10 @@ CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # URL для хранения р
 if 'test' in sys.argv or 'test_coverage' in sys.argv:
     CELERY_SCHEDULE = 10.0  # для теста 10 секунд
 else:
-    # CELERY_SCHEDULE = 45.0  # для теста 45 секунд
     CELERY_SCHEDULE = crontab(minute=0, hour='*')  # для нормальной работы каждый час
 
-CELERY_TASK_ALWAYS_EAGER = True
-CELERY_TASK_EAGER_PROPAGATES = True  # Чтобы ошибки выбрасывались сразу
+# CELERY_TASK_ALWAYS_EAGER = True
+# CELERY_TASK_EAGER_PROPAGATES = True  # Чтобы ошибки выбрасывались сразу
 
 AUTH_PASSWORD_VALIDATORS = [
     {
