@@ -92,13 +92,13 @@
 
 #### URL
 
-```http
+```plaintext
 http://127.0.0.1:8000/counter/add/
 ```
 
 #### Пример запроса
 
-```http
+```plaintext
 POST
 Content-Type: application/json
 
@@ -110,7 +110,7 @@ Body: {
 
 #### Пример ответа
 
-```http
+```plaintext
 HTTP 201 Created
 Allow: POST, OPTIONS
 Content-Type: application/json
@@ -143,7 +143,7 @@ GET http://127.0.0.1:8000/counter/stat/?id=1&start_time=2024-01-01&end_time=2024
 
 #### Пример ответа
 
-```http
+```plaintext
 HTTP 200 OK
 Allow: GET, HEAD, OPTIONS
 Content-Type: application/json
@@ -171,7 +171,7 @@ Vary: Accept
 
 #### URL
 
-```http
+```plaintext
 http://127.0.0.1:8000/counter/top/?id=<id>
 ```
 
@@ -183,7 +183,7 @@ GET http://127.0.0.1:8000/counter/top/?id=1
 
 #### Пример ответа
 
-```http
+```plaintext
 HTTP 200 OK
 Allow: GET, HEAD, OPTIONS
 Content-Type: application/json
